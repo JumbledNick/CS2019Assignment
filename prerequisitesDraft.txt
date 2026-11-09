@@ -1,0 +1,85 @@
+table Art
+ - id number (unique (format AOXXXX))
+ - artist
+ - year
+ - title
+ - description
+ - type (painting, sculpture, statue, other)
+ 	- painting subtypes (type (watercolour, oil), material (paper, canvas, wood))
+	- sculpture/statue subtypes (wood, stone, style, weight, height
+	- others subtypes (type, style)
+ - isPermanent (bool)
+	- isPermanent subtypes (date acquired, status)
+ - isBorrowed (bool)
+ 	- isBorrowed subtypes
+		- museum borrowed
+		- date borrowed
+		- return date
+ - originCountry
+ - epoch
+
+table Artists
+	- name
+	- birthDate
+	- deathDate
+	- originCountry
+	- epoch
+	- mainStyle
+
+table Arts Friends Circle
+ - Name (unique)
+ - description
+ - address
+ - phone
+ - contact name
+
+table loyalVisitors
+ - loyaltyNum (unique) (LMYYYY)
+ - exhibitionPref
+ 
+table staff
+ - staffID
+ - fName
+ - lName
+ - position (curator, gallery supervisor)
+
+Regular Exhibitions with any/all of museum stock.
+Featured Exhibitions with art sharing features.
+
+Museum invites loyal visitors to featured exhibitions based on exhibition preference.
+Curator maintains 20 of a certain type of art objects.
+supervisor can manage any gallery in any exhibition.
+
+
+Transaction requirements:
+
+ - Add a new art object to the museum's permanent collection.
+
+
+ - Change the end date of a featured exhibition.
+
+
+ - List all the borrowed art objects.
+
+
+ - Count the number of art objects created by a given artist.
+
+
+ - Count the number of art objects per type displayed in the regular exhibition and sort the list.
+
+
+ - List all the art objects borrowed from a given museum in the 'Arts Friends Circle'.
+
+
+ - List the staff supervising a given featured exhibition.
+
+
+ - List all the curators responsible for maintaining a given art object.
+
+
+ - List all the featured exhibitions along with their start and end dates and their loyal visitors.
+
+
+ - List all the art objects used in a given featured exhibition that a given artist creates
+
+
