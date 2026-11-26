@@ -1,20 +1,14 @@
 -- Our father, who art in heaven
 CREATE DATABASE IF NOT EXISTS `museum`; 
-
---  Artwork Table
-CREATE TABLE IF NOT EXISTS `Artwork`(
-    `ArtworkID` varchar(5) PRIMARY KEY,
-    `title` varchar(20),
-    `description` varchar(256),
-    `yearCreated` int(4),
-    `originCountryCulture` varchar(20),
-    `epoch` varchar(20)
-);
-
-
 -- Artist Table
 CREATE TABLE IF NOT EXISTS `Artist`(
-    `name` varchar(41) PRIMARY KEY,
+	`artistIDRaw` INT AUTO_INCREMENT UNIQUE NOT NULL,
+	`artistID` varchar(6)
+		GENERATED ALWAYS AS (
+			CONCAT('AT', LPAD(artistIDRaw, 4, '0'))
+		) STORED PRIMARY KEY NOT NULL,
+    `fName` varchar(20) NOT NULL,
+    `lName` varchar(20) NOT NULL,
     `dateBorn` DATE,
     `dateDied` DATE,
     `countryOfOrigin` varchar(20),
@@ -23,58 +17,82 @@ CREATE TABLE IF NOT EXISTS `Artist`(
     `description` varchar(256)
 );
 
-CREATE TABLE IF NOT EXISTS `Museum` (
-    `museumName` varchar(20) PRIMARY KEY,
+--  Artwork Table
+CREATE TABLE IF NOT EXISTS `Artwork`(
+    `ArtworkIDRaw` INT AUTO_INCREMENT UNIQUE NOT NULL,
+    `ArtworkID` varchar(6)
+		GENERATED ALWAYS AS (
+			CONCAT('AO', LPAD(ArtworkIDRaw, 4, '0'))
+		) STORED PRIMARY KEY NOT NULL,
+    `title` varchar(20) NOT NULL,
     `description` varchar(256),
-    `address` varchar(40),
-    `phone` int(11),
-    `currentContact` varchar(20)
+    `yearCreated` int(4) NOT NULL,
+    `artist` varchar(41) NOT NULL,
+    FOREIGN KEY (artist) REFERENCES Artist(name),
+    `originCountryCulture` varchar(20) NOT NULL,
+    `epoch` varchar(20) NOT NULL
+);
+
+
+
+
+CREATE TABLE IF NOT EXISTS `Museum` (
+	`museumIDRaw` INT AUTO_INCREMENT UNIQUE NOT NULL,
+	`museumID` varchar(6)
+			GENERATED ALWAYS AS (
+				CONCAT('MU', LPAD(museumIDRaw, 4, '0'))
+			) STORED PRIMARY KEY NOT NULL,
+    `museumName` varchar(20) NOT NULL,
+    `description` varchar(256),
+    `address` varchar(40) UNIQUE NOT NULL,
+    `phone` int(11) NOT NULL,
+    `currentContact` varchar(20) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS `Borrowed`(
-	`museumName` varchar(20),
-    `ArtworkID` varchar(5),
-    FOREIGN KEY (museumName) REFERENCES Museum(museumName),
+	`museumID` varchar(20) NOT NULL,
+    `ArtworkID` varchar(6) NOT NULL,
+    FOREIGN KEY (museumID) REFERENCES Museum(museumID),
     FOREIGN KEY (ArtworkID) REFERENCES Artwork(ArtworkID),
-    `dateBorrowed` DATE,
-    `dateToReturn` DATE
+    `dateBorrowed` DATE NOT NULL,
+    `dateToReturn` DATE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS `Permanent` (
-    `ArtworkID` varchar(5),
+    `ArtworkID` varchar(6) NOT NULL,
     FOREIGN KEY (ArtworkID) REFERENCES Artwork(ArtworkID),
-    `dateAcquired` DATE,
-    `status` varchar(20)
+    `dateAcquired` DATE NOT NULL,
+    `status` ENUM('On Display','On Loan','Under Restoration','In Store') NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS `loan`(
-	`museumName` varchar(20),
-    `ArtworkID` varchar(5),
-    FOREIGN KEY (museumName) REFERENCES Museum(museumName),
+	`museumID` varchar(20) NOT NULL,
+    `ArtworkID` varchar(6) NOT NULL,
+    FOREIGN KEY (museumID) REFERENCES Museum(museumID),
     FOREIGN KEY (ArtworkID) REFERENCES Artwork(ArtworkID),
-    `loanDate` DATE,
-    `loanDueDate` DATE
+    `loanDate` DATE NOT NULL,
+    `loanDueDate` DATE NOT NULL
 );
 
 -- Artwork Type Tables
 CREATE TABLE IF NOT EXISTS `Painting` (
-    `ArtworkID` varchar(5),
+    `ArtworkID` varchar(6) NOT NULL,
     FOREIGN KEY (ArtworkID) REFERENCES Artwork(ArtworkID),
     `material` varchar(20),
     `style` varchar(20)
 );
 
 CREATE TABLE IF NOT EXISTS `Sculpture` (
-    `ArtworkID` varchar(5),
+    `ArtworkID` varchar(6) NOT NULL,
     FOREIGN KEY (ArtworkID) REFERENCES Artwork(ArtworkID),
     `material` varchar(20),
     `height` float,
-    `weight` int(2),
+    `weight` int(3),
     `style` varchar(20)
 );
 
 CREATE TABLE IF NOT EXISTS `Statue` (
-    `ArtworkID` varchar(5),
+    `ArtworkID` varchar(6) NOT NULL,
     FOREIGN KEY (ArtworkID) REFERENCES Artwork(ArtworkID),
     `material` varchar(20),
     `height` float,
@@ -83,99 +101,91 @@ CREATE TABLE IF NOT EXISTS `Statue` (
 );
 
 CREATE TABLE IF NOT EXISTS `OtherArtwork` (
-    `ArtworkID` varchar(5),
+    `ArtworkID` varchar(6) NOT NULL,
     FOREIGN KEY (ArtworkID) REFERENCES Artwork(ArtworkID),
     `style` varchar(20)
 );
 
 -- Staff Tables
 CREATE TABLE IF NOT EXISTS  `Staff`(
-    `staffID` varchar(5) PRIMARY KEY,
-    `fName` varchar(20),
-    `lName` varchar(20),
-    `phone` int(11),
-    `hireDate` DATE,
-    `salary` int(6)
+	`staffIDRaw` INT AUTO_INCREMENT UNIQUE NOT NULL,
+    `staffID` varchar(6) 
+		GENERATED ALWAYS AS (
+			CONCAT('SM', LPAD(staffIDRaw, 4, '0'))
+		) STORED PRIMARY KEY NOT NULL,
+    `fName` varchar(20) NOT NULL,
+    `lName` varchar(20) NOT NULL,
+    `phone` int(11) NOT NULL,
+    `hireDate` DATE NOT NULL,
+    `salary` int(6) NOT NULL,
+    `artType` ENUM('Painting','Sculpture','Statue','Other') NOT NULL,
+    `supervisor` boolean
 );
 
-CREATE TABLE IF NOT EXISTS `Curator` (
-	`staffID` varchar(5),
-    `ArtworkID` varchar(5),
-    FOREIGN KEY (staffID) REFERENCES Staff(staffID),
-    FOREIGN KEY (ArtworkID) REFERENCES Artwork(ArtworkID),
-    `specialtyType` varchar(20),
-    `maxObjects` varchar(20)
-);
 
-CREATE TABLE IF NOT EXISTS Supervisor (
-	`staffID` varchar(5),
-    `galleryID` varchar(5),
-    FOREIGN KEY (staffID) REFERENCES Staff(staffID),
-    FOREIGN KEY (galleryID) REFERENCES Gallery(galleryID)
-);
-
-CREATE TABLE IF NOT EXISTS `Maintenance`(
-	`staffID` varchar(5),
-    `ArtworkID` varchar(5),
-    FOREIGN KEY (ArtworkID) REFERENCES Artwork(ArtworkID),
-    FOREIGN KEY (staffID) REFERENCES Staff(staffID),
-    `assignedDate` DATE
-);
 -- Exhibition/Gallery Tables
 
 CREATE TABLE IF NOT EXISTS `Gallery`(
-    `galleryID` varchar(7) PRIMARY KEY,
-    `name` varchar(20),
-    `location` varchar(20)
+	`galleryIDRaw` INT AUTO_INCREMENT UNIQUE NOT NULL,
+    `galleryID` varchar(6) 
+		GENERATED ALWAYS AS (
+			CONCAT('GA', LPAD(galleryIDRaw, 4, '0'))
+		) STORED PRIMARY KEY NOT NULL,
+    `artworkID` varchar(6) NOT NULL,
+    `staffID` varchar(6) NOT NULL,
+    FOREIGN KEY (ArtworkID) REFERENCES Artwork(ArtworkID),
+    FOREIGN KEY (staffID) REFERENCES Staff(staffID),
+    `assignedDate` DATE NOT NULL,
+    `name` varchar(20) NOT NULL,
+    `location` varchar(20) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS `Exhibition`(
-    `exhibitionID` varchar(7) PRIMARY KEY,
+	`exhibitionIDRaw` INT AUTO_INCREMENT UNIQUE NOT NULL,
+    `exhibitionID` varchar(6) 
+		GENERATED ALWAYS AS (
+			CONCAT('EX', LPAD(exhibtionIDRaw, 4, '0'))
+		) STORED
+    PRIMARY KEY NOT NULL,
     `title` varchar(20)
 );
 
 CREATE TABLE IF NOT EXISTS `FeaturedExhibition`(
-	`exhibitionID` varchar(7),
+	`exhibitionID` varchar(6) NOT NULL,
     FOREIGN KEY (exhibitionID) REFERENCES Exhibition(exhibitionID),
-    `startDate` DATE,
-    `endDate` DATE,
-    `featureType` varchar(20),
-    `featureValue` int(7)
-);
-
-CREATE TABLE IF NOT EXISTS `RegularExhibition`(
-`exhibitionID` varchar(7),
-    FOREIGN KEY (exhibitionID) REFERENCES Exhibition(exhibitionID),
-    `title` varchar(20)
+    `startDate` DATE NOT NULL,
+    `endDate` DATE NOT NULL,
+    `featureType` varchar(20) NOT NULL,
+    `featureValue` int(7) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS `ReplicaSale`(
-`exhibitionID` varchar(7),
+`exhibitionID` varchar(6) NOT NULL,
     FOREIGN KEY (exhibitionID) REFERENCES Exhibition(exhibitionID),
-    `unitPrice` int(5),
+    `unitPrice` int(5) NOT NULL,
     `quantitySold` int(5)
 );
 
 -- Visitor Tables
 CREATE TABLE IF NOT EXISTS `LoyalVisitor`(
-    `LoyaltyNo` varchar(7) PRIMARY KEY,
-    `fName` varchar(20),
-    `lName` varchar(20),
-    `address` varchar(40),
-    `email` varchar(20)
-);
-
-CREATE TABLE IF NOT EXISTS `Preference`(
-	`LoyaltyNo` varchar(7),
-    FOREIGN KEY (LoyaltyNo) REFERENCES LoyalVisitor(LoyaltyNo),
-    `featureType` varchar(20),
-    `featureValue` varchar(20)
+	`LoyaltyNoRaw` INT AUTO_INCREMENT UNIQUE NOT NULL,
+    `LoyaltyNo` varchar(6) 
+		GENERATED ALWAYS AS (
+			CONCAT('LM', LPAD(LoyaltyIDRaw, 4, '0'))
+		) STORED PRIMARY KEY NOT NULL,
+    `fName` varchar(20) NOT NULL,
+    `lName` varchar(20) NOT NULL,
+    `address` varchar(40) NOT NULL,
+    `email` varchar(20) NOT NULL,
+	`featureTypePref` varchar(20)
 );
 
 CREATE TABLE IF NOT EXISTS `Invitation`(
-	`LoyaltyNo` varchar(7),
-	`exhibitonID` varchar(5),
+	`LoyaltyNo` varchar(6) NOT NULL,
+    `email` varchar(20) NOT NULL,
+	`exhibitonID` varchar(6) NOT NULL,
     FOREIGN KEY (LoyaltyNo) REFERENCES LoyalVisitor(LoyaltyNo),
+    FOREIGN KEY (email) REFERENCES LoyalVisitor(email),
     FOREIGN KEY (exhibitionID) REFERENCES Exhibition(exhibitionID),
-    `dateSent` DATE
-)
+    `dateSent` DATE NOT NULL
+);
